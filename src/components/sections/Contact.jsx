@@ -30,18 +30,22 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
+      const payload = new FormData();
+      payload.append('name', formData.name);
+      payload.append('email', formData.email);
+      payload.append('message', formData.message);
+      payload.append('_subject', `Portfolio inquiry from ${formData.name}`);
+      payload.append('_template', 'table');
+      payload.append('_captcha', 'false');
+      payload.append('_replyto', formData.email);
+      payload.append('_url', 'portfolio-contact-form');
+
       const response = await fetch('https://formsubmit.co/ajax/abhishek220av@gmail.com', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          _subject: `Portfolio inquiry from ${formData.name}`,
-          _template: 'table',
-          _captcha: 'false',
-        }),
+        body: payload,
       });
 
       const result = await response.json();

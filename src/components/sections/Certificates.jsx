@@ -1,18 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Award, ExternalLink, Pencil, Plus, X } from 'lucide-react';
+import { Award, ExternalLink, X } from 'lucide-react';
 import { trackLinkClick } from '../../utils/analytics';
-
-const emptyForm = {
-  id: '',
-  title: '',
-  issuer: '',
-  date: '',
-  type: '',
-  description: '',
-  link: '',
-};
 
 const getCertificateUrl = (certificate) => certificate.link || '#';
 
@@ -30,7 +20,7 @@ const getCertificatePreviewType = (certificate) => {
   return 'external';
 };
 
-const CertificateCard = ({ certificate, index, onEdit, onPreview }) => {
+const CertificateCard = ({ certificate, index, onPreview }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -59,17 +49,6 @@ const CertificateCard = ({ certificate, index, onEdit, onPreview }) => {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation();
-            onEdit(certificate);
-          }}
-          className="text-theme-secondary hover:text-[#aa3bff] transition-colors inline-flex items-center gap-2 text-sm"
-        >
-          <Pencil size={16} />
-          Edit
-        </button>
       </div>
 
       <p className="text-theme-secondary leading-7">{certificate.description}</p>
@@ -94,66 +73,17 @@ const CertificateCard = ({ certificate, index, onEdit, onPreview }) => {
   );
 };
 
-const Certificates = ({ certificates = [], onAddCertificate, onUpdateCertificate }) => {
+const Certificates = ({ certificates = [] }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState('');
-  const [formValues, setFormValues] = useState(emptyForm);
   const [selectedCertificate, setSelectedCertificate] = useState(null);
 
   const selectedPreviewType = useMemo(
     () => (selectedCertificate ? getCertificatePreviewType(selectedCertificate) : 'external'),
     [selectedCertificate]
   );
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues((current) => ({ ...current, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    const certificatePayload = {
-      id: formValues.id || `certificate-${formValues.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`,
-      title: formValues.title.trim(),
-      issuer: formValues.issuer.trim(),
-      date: formValues.date.trim(),
-      type: formValues.type.trim(),
-      description: formValues.description.trim(),
-      link: formValues.link.trim() || '#',
-    };
-
-    if (editingId) {
-      onUpdateCertificate(certificatePayload);
-    } else {
-      onAddCertificate(certificatePayload);
-    }
-
-    setFormValues(emptyForm);
-    setEditingId('');
-    setIsAdding(false);
-  };
-
-  const handleEdit = (certificate) => {
-    setEditingId(certificate.id);
-    setFormValues(certificate);
-    setIsAdding(true);
-  };
-
-  const handleToggle = () => {
-    setIsAdding((current) => {
-      const next = !current;
-      if (!next) {
-        setEditingId('');
-        setFormValues(emptyForm);
-      }
-      return next;
-    });
-  };
 
   const handlePreview = (certificate) => {
     const previewType = getCertificatePreviewType(certificate);
@@ -191,47 +121,12 @@ const Certificates = ({ certificates = [], onAddCertificate, onUpdateCertificate
           <div className="w-24 h-1 bg-gradient-to-r from-[#aa3bff] to-[#00f0ff] mx-auto rounded-full" />
         </motion.div>
 
-        <div className="flex justify-center mb-10">
-          <button
-            type="button"
-            onClick={handleToggle}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl glass-card border border-theme text-theme-primary hover:border-[rgba(170,59,255,0.45)] transition-colors"
-          >
-            {isAdding ? <X size={18} /> : <Plus size={18} />}
-            <span>{isAdding ? 'Close Certificate Form' : 'Add Certificate'}</span>
-          </button>
-        </div>
-
-        {isAdding && (
-          <div className="glass-card rounded-2xl p-6 md:p-8 border border-theme mb-12">
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="title" value={formValues.title} onChange={handleChange} required placeholder="Certificate title" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <input name="issuer" value={formValues.issuer} onChange={handleChange} required placeholder="Issuer / Organization" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <input name="date" value={formValues.date} onChange={handleChange} required placeholder="2025" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <input name="type" value={formValues.type} onChange={handleChange} required placeholder="Internship / Course" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <textarea name="description" value={formValues.description} onChange={handleChange} required rows="4" placeholder="Certificate description" className="md:col-span-2 input-theme rounded-xl px-4 py-3 focus:outline-none resize-none" />
-              <div className="md:col-span-2">
-                <input name="link" value={formValues.link} onChange={handleChange} placeholder="/certificates/redynox.pdf or /certificates/course.png" className="w-full input-theme rounded-xl px-4 py-3 focus:outline-none" />
-                <p className="mt-2 text-sm text-theme-secondary">
-                  Add your PDF or image inside `public/certificates/` and paste the path here, for example `/certificates/my-certificate.pdf`.
-                </p>
-              </div>
-              <div className="md:col-span-2 flex justify-end">
-                <button type="submit" className="px-6 py-3 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition-colors">
-                  {editingId ? 'Update Certificate' : 'Save Certificate'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {certificates.map((certificate, index) => (
             <CertificateCard
               key={certificate.id || certificate.title}
               certificate={certificate}
               index={index}
-              onEdit={handleEdit}
               onPreview={handlePreview}
             />
           ))}

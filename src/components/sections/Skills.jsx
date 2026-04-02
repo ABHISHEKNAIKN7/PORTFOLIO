@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Pencil, Plus, X } from 'lucide-react';
 
 const getSkillCategory = (name) => {
   if (['HTML', 'CSS', 'JavaScript', 'React.js', 'Tailwind CSS'].includes(name)) {
@@ -27,7 +26,7 @@ const getSkillCategory = (name) => {
   return 'Tools';
 };
 
-const SkillIcon = ({ skill, index, onEdit }) => {
+const SkillIcon = ({ skill, index }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -64,77 +63,15 @@ const SkillIcon = ({ skill, index, onEdit }) => {
       <span className="text-sm font-medium text-theme-secondary group-hover:text-theme-primary transition-colors duration-300 text-center">
         {skill.name}
       </span>
-      <button
-        type="button"
-        onClick={() => onEdit(skill)}
-        className="mt-3 text-xs text-theme-secondary hover:text-[#00f0ff] transition-colors flex items-center gap-2"
-      >
-        <Pencil size={14} />
-        Edit
-      </button>
     </motion.div>
   );
 };
 
-const emptyForm = {
-  id: '',
-  name: '',
-  icon: '',
-};
-
-const Skills = ({ skills = [], onAddSkill, onUpdateSkill }) => {
+const Skills = ({ skills = [] }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState('');
-  const [formValues, setFormValues] = useState(emptyForm);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues((current) => ({ ...current, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const skillPayload = {
-      id: formValues.id || `skill-${formValues.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`,
-      name: formValues.name.trim(),
-      icon: formValues.icon.trim(),
-    };
-
-    if (editingId) {
-      onUpdateSkill(skillPayload);
-    } else {
-      onAddSkill(skillPayload);
-    }
-
-    setFormValues(emptyForm);
-    setEditingId('');
-    setIsAdding(false);
-  };
-
-  const handleEdit = (skill) => {
-    setEditingId(skill.id);
-    setFormValues({
-      id: skill.id,
-      name: skill.name,
-      icon: skill.icon,
-    });
-    setIsAdding(true);
-  };
-
-  const handleToggle = () => {
-    setIsAdding((current) => {
-      const next = !current;
-      if (!next) {
-        setEditingId('');
-        setFormValues(emptyForm);
-      }
-      return next;
-    });
-  };
 
   const skillGroups = skills.reduce((groups, skill) => {
     const category = getSkillCategory(skill.name);
@@ -164,31 +101,6 @@ const Skills = ({ skills = [], onAddSkill, onUpdateSkill }) => {
           <div className="w-24 h-1 bg-gradient-to-r from-[#00f0ff] to-[#aa3bff] mx-auto rounded-full" />
         </motion.div>
 
-        <div className="flex justify-center mb-10">
-          <button
-            type="button"
-            onClick={handleToggle}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl glass-card border border-theme text-theme-primary hover:border-[rgba(0,240,255,0.4)] transition-colors"
-          >
-            {isAdding ? <X size={18} /> : <Plus size={18} />}
-            <span>{isAdding ? 'Close Skill Form' : 'Add Skill'}</span>
-          </button>
-        </div>
-
-        {isAdding && (
-          <div className="glass-card rounded-2xl p-6 md:p-8 border border-theme mb-12 max-w-3xl mx-auto">
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="name" value={formValues.name} onChange={handleChange} required placeholder="Skill name" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <input name="icon" value={formValues.icon} onChange={handleChange} required placeholder="Icon URL" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <div className="md:col-span-2 flex justify-end">
-                <button type="submit" className="px-6 py-3 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition-colors">
-                  {editingId ? 'Update Skill' : 'Save Skill'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
         <div className="space-y-8 max-w-6xl mx-auto">
           {Object.entries(skillGroups).map(([category, groupedSkills], groupIndex) => (
             <div key={category} className="glass-card rounded-[2rem] border border-theme p-5 md:p-7 relative overflow-hidden">
@@ -209,7 +121,6 @@ const Skills = ({ skills = [], onAddSkill, onUpdateSkill }) => {
                     key={skill.id || skill.name}
                     skill={skill}
                     index={index + groupIndex}
-                    onEdit={handleEdit}
                   />
                 ))}
               </div>

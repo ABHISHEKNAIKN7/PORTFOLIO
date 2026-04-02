@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { Briefcase, GraduationCap, Pencil, Plus, X } from 'lucide-react';
+import { Briefcase, GraduationCap } from 'lucide-react';
 
-const TimelineItem = ({ item, index, onEdit }) => {
+const TimelineItem = ({ item, index }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.2,
@@ -56,14 +56,6 @@ const TimelineItem = ({ item, index, onEdit }) => {
             <p className="text-theme-secondary font-light leading-7 break-words">
               {item.description}
             </p>
-            <button
-              type="button"
-              onClick={() => onEdit(item)}
-              className="mt-5 text-sm text-theme-secondary hover:text-[#aa3bff] transition-colors inline-flex items-center gap-2"
-            >
-              <Pencil size={16} />
-              Edit
-            </button>
           </div>
         </motion.div>
       </div>
@@ -72,72 +64,11 @@ const TimelineItem = ({ item, index, onEdit }) => {
   );
 };
 
-const emptyForm = {
-  id: '',
-  title: '',
-  company: '',
-  date: '',
-  description: '',
-};
-
-const Experience = ({ experience = [], onAddExperience, onUpdateExperience }) => {
+const Experience = ({ experience = [] }) => {
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingId, setEditingId] = useState('');
-  const [formValues, setFormValues] = useState(emptyForm);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormValues((current) => ({ ...current, [name]: value }));
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const experiencePayload = {
-      id: formValues.id || `experience-${formValues.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now()}`,
-      type: 'work',
-      title: formValues.title.trim(),
-      company: formValues.company.trim(),
-      date: formValues.date.trim(),
-      description: formValues.description.trim(),
-    };
-
-    if (editingId) {
-      onUpdateExperience(experiencePayload);
-    } else {
-      onAddExperience(experiencePayload);
-    }
-
-    setFormValues(emptyForm);
-    setEditingId('');
-    setIsAdding(false);
-  };
-
-  const handleEdit = (item) => {
-    setEditingId(item.id);
-    setFormValues({
-      id: item.id,
-      title: item.title,
-      company: item.company,
-      date: item.date,
-      description: item.description,
-    });
-    setIsAdding(true);
-  };
-
-  const handleToggle = () => {
-    setIsAdding((current) => {
-      const next = !current;
-      if (!next) {
-        setEditingId('');
-        setFormValues(emptyForm);
-      }
-      return next;
-    });
-  };
 
   return (
     <section id="experience" className="w-full py-24 px-6 md:px-12 flex flex-col items-center">
@@ -155,40 +86,13 @@ const Experience = ({ experience = [], onAddExperience, onUpdateExperience }) =>
           <div className="w-24 h-1 bg-gradient-to-r from-[#aa3bff] to-[#00f0ff] mx-auto rounded-full" />
         </motion.div>
 
-        <div className="flex justify-center mb-10">
-          <button
-            type="button"
-            onClick={handleToggle}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl glass-card border border-theme text-theme-primary hover:border-[rgba(170,59,255,0.45)] transition-colors"
-          >
-            {isAdding ? <X size={18} /> : <Plus size={18} />}
-            <span>{isAdding ? 'Close Experience Form' : 'Add Experience'}</span>
-          </button>
-        </div>
-
-        {isAdding && (
-          <div className="glass-card rounded-2xl p-6 md:p-8 border border-theme mb-12">
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <input name="title" value={formValues.title} onChange={handleChange} required placeholder="Role title" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <input name="company" value={formValues.company} onChange={handleChange} required placeholder="Company name" className="input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <input name="date" value={formValues.date} onChange={handleChange} required placeholder="Jan 2026 - Mar 2026" className="md:col-span-2 input-theme rounded-xl px-4 py-3 focus:outline-none" />
-              <textarea name="description" value={formValues.description} onChange={handleChange} required rows="5" placeholder="Experience description" className="md:col-span-2 input-theme rounded-xl px-4 py-3 focus:outline-none resize-none" />
-              <div className="md:col-span-2 flex justify-end">
-                <button type="submit" className="px-6 py-3 rounded-xl bg-white text-black font-semibold hover:bg-gray-200 transition-colors">
-                  {editingId ? 'Update Experience' : 'Save Experience'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
         <div className="relative py-10 w-full flex flex-col items-center">
           {/* Main timeline center line mobile */}
           <div className="absolute top-0 bottom-0 left-12 w-0.5 bg-gradient-to-b from-[rgba(170,59,255,0.3)] via-[rgba(0,240,255,0.3)] to-transparent md:hidden" />
 
           <div className="w-full relative">
             {experience.map((item, index) => (
-              <TimelineItem key={item.id || index} item={item} index={index} onEdit={handleEdit} />
+              <TimelineItem key={item.id || index} item={item} index={index} />
             ))}
           </div>
         </div>
